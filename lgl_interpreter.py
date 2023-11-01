@@ -140,8 +140,88 @@ def do_array():
 
     pass
 
-def do_dictionary():
-    pass
+def do_dictionary(env,args):
+    def dict_new(env, args):
+        '''
+        creates dictionary called name ->Do dictionary names have to be strings?
+        args:
+            envs: environment
+            args: ["name"]
+        return:
+            None
+            '''
+        dict_name = args[0]
+        assert len(args) == 1
+        assert isinstance(dict_name, str)
+        envs_set(env, dict_name, {})
+
+    def dict_get_value(env, args):
+        '''
+        get value of a key in dict
+        args:
+            envs: environment
+            args: ["name","key"]
+        return:
+            value of key
+        '''
+        dict_name = args[0]
+        key = args[1]
+        assert len(args) == 2
+        assert isinstance(dict_name, str)
+        dict = envs_get(env, dict_name)
+        if key not in dict:
+            print(f"Error: key {key} not in dictionary {dict_name}")
+        else:
+            value = dict[key]
+            return value
+
+    def dict_set_value(env, args):
+        '''
+        set value of key in dict name
+        args:
+            env: environment
+            args: ["name","key","value"]
+        return:
+            None
+        '''
+        dict_name = args[0]
+        key = args[1]
+        value = args[2]
+        assert len(args) == 3
+        assert isinstance(dict_name, str)
+        dict = envs_get(env, dict_name)
+        dict[key] = value
+
+    def dict_merge(env, args):
+        """
+        this function merges two dictionarys -> should we delete the merged dictionarys?
+        args:
+            env: environment
+            agrs: ["name", "dict1","dict2"]
+        return:
+            None or new dictionary
+        """
+        new_dict = args[0]
+        dict_name1 = args[1]
+        dict_name2 = args[2]
+        assert len(args) == 3
+        assert isinstance(new_dict, str) and isinstance(dict_name1, str) and isinstance(dict_name2, str)
+        dict1 = envs_get(env, dict_name1)
+        dict2 = envs_get(env, dict_name2)
+        merged = dict1 | dict2
+        envs_set(env, new_dict, merged)
+
+    variables = locals().copy()
+    OPERATIONS_DICT = {}
+    for k in variables:
+        if k.startswith("dict_"):
+            OPERATIONS_DICT[k.replace("dict_", "")] = variables[k]
+
+
+    assert args[0] in OPERATIONS_DICT, f"Unknown operation: {args[0]}"
+    func = OPERATIONS_DICT[args[0]]
+    return func(env, args[1:])
+
 
 
 
