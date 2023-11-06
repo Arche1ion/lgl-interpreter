@@ -335,7 +335,10 @@ def do_class(envs, args):
         instance_name=args[0]
         class_name=args[1]
         data=envs_get(envs,class_name)
-        envs_set(envs,instance_name,data)
+        data_c=data.copy()
+        data_c["_parent"]=class_name
+        envs_set(envs,instance_name,data_c)
+
         if len(args)>2:
             parameters=args[2:]
             instance=envs_get(envs,instance_name)
