@@ -2,14 +2,14 @@ import sys
 import json
 
 #---from funcs-demo in session 4---
-def do_funktion(envs,args):
+def do_function(envs,args):
     #define function
     assert len(args) == 2
     params = args[0]
     body = args[1]
     return ["funktion",params,body]
 
-def do_aufrufen(envs,args):
+def do_call(envs,args):
     #call function
     assert len(args) >= 1
     name = args[0]
@@ -58,7 +58,7 @@ def envs_set(envs,name,value, i = None):
         envs[-1][name][i] = value
 
 
-def do_setzen(envs,args):
+def do_set(envs,args):
     assert len(args) == 2
     assert isinstance(args[0],str)
     var_name = args[0]
@@ -66,28 +66,28 @@ def do_setzen(envs,args):
     envs_set(envs,var_name, value)
     return value
 
-def do_abrufen(envs,args):
+def do_get(envs,args):
     assert len(args) == 1
     return envs_get(envs,args[0])
 
-def do_addieren(envs,args):
+def do_add(envs,args):
     assert len(args) == 2
     left = do(envs,args[0])
     right = do(envs,args[1])
     return left + right
 
-def do_absolutwert(envs,args):
+def do_abs(envs,args):
     assert len(args) == 1
     value = do(envs,args[0])
     return abs(value)
 
-def do_subtrahieren(envs,args):
+def do_subtract(envs,args):
     assert len(args) == 2
     left = do(envs,args[0])
     right = do(envs,args[1])
     return left - right
 
-def do_abfolge(envs,args):
+def do_sequence(envs,args):
     assert len(args) > 0
     for operation in args:
         result = do(envs,operation)
@@ -137,13 +137,13 @@ def do_array(envs, args):
     def array_new(envs, args):
         """
         Creates array called name of size n
-        equivalent to do_funktion and setzen
+        equivalent to do_function and do_set
 
         Args: 
-            envs: environment
+            envs: list of environments
             args: [name: str, n: int]
         Return:
-            None
+            empty array with name and size n
         """
         assert len(args) == 2
         assert isinstance(args[0], str) and isinstance(args[1], int)
@@ -156,10 +156,10 @@ def do_array(envs, args):
     def array_get(envs, args):
         """
         get the value of array at certain index
-        equivalent to do_abrufen
+        equivalent to do_get
 
         Args: 
-            envs: environment
+            envs: list of environments
             args: [name: str, i: int]
         Return:
             int - value at name[i]
@@ -171,10 +171,10 @@ def do_array(envs, args):
     def array_set(envs, args):
         """
         set the value of array at certain index
-        Equivalent to do_setzen
+        Equivalent to do_set
 
         Args: 
-            envs: environment
+            envs: list of environments
             args: [name: str, i: int, val: value]
         Return:
             int - value at name[i]
@@ -203,7 +203,7 @@ def do_array(envs, args):
 
 
 
-def do_dictionary(env,args):
+def do_dict(env,args):
     def dict_new(env, args):
         '''
         creates dictionary called name ->Do dictionary names have to be strings?
@@ -274,6 +274,7 @@ def do_dictionary(env,args):
         merged = dict1 | dict2
         envs_set(env, new_dict, merged)
 
+    #-----introspection in dict----------------------------
     variables = locals().copy()
     OPERATIONS_DICT = {}
     for k in variables:
@@ -284,11 +285,217 @@ def do_dictionary(env,args):
     assert args[0] in OPERATIONS_DICT, f"Unknown operation: {args[0]}"
     func = OPERATIONS_DICT[args[0]]
     return func(env, args[1:])
+#-----end of dict-----------------------------------------
 
 
 
 
-#---------end of 1, put over do() when done?-----
+#---------end of 1---------------------
+
+
+
+
+
+#--------- 2 Object System ------------
+
+#define Shape, Square, Circle, see session 2
+
+
+"""
+our_class={
+    "_classname": name
+    "_attributes": dict of attributes
+    "_methods": dict of methods
+    "_parent": parent
+}
+
+our_instance={
+    "_parent": "Shape"
+    "attributes": {}
+    "methods": {}
+} 
+"""
+
+def do_class(envs, args):
+
+
+    def class_define(envs, args):
+        return
+    
+
+    def class_instantiate(envs, args):
+        return
+    
+    def class_set_attributes(envs, args):
+        """
+        set attributes of a given instance of class
+        implementation of option 2
+        
+
+        Args: 
+            envs: list of environments
+            args: [class_name: str, instance_name: str, **kwargs]
+        Return:
+            to be determined, temporarily None
+            
+        """
+        data = envs_get(envs,args[0]) 
+        assert type(data) == dict
+        copy = data.copy()
+        assert type(copy["_attributes"])==dict, f"invalid syntax, {args[0]} doesn't have any attribute"
+
+
+        maxlen = len(args[1:])
+        assert maxlen%2==0, "invalid syntax: set_attributes requires attribute-value pairs"
+        for i in range(1,maxlen,2):
+            att = do(args[i])
+            value = do(args[i+1])
+            data = envs_get(envs,args[0])#get the dictionary containing data of the instance variable, assert in envs_get
+            name = args[0] #instance name
+            while (not (att in data.keys())) and (data["_parent"] != None):
+                name = data["_parent"] #name is class name or parent class name
+                data = envs_get(envs,name) #get dict containing data of class or parent class
+            assert type(data["_attributes"])==dict, f"{args[0]} has no attribute"
+            assert att in data["_attributes"].keys(), f"invalid syntax: No attribute {args[i]} found in {args[0]}"
+            copy = data.copy()
+            copy["_attributes"][att] = value #set value in attributes dictionary at index attribute_name (att)
+            envs_set(envs,name,copy)    
+            
+
+        return None
+    
+    def class_set_methods(envs, args):
+        """
+        set methods of a given instance of class
+        implementation of option 2
+        
+
+        Args: 
+            envs: list of environments
+            args: [instance_name: str, methodname1: str]
+        Return:
+            to be determined, temporarily None
+            
+        """
+        
+        maxlen = len(args[1:])
+        copy = data.copy()
+        assert type(copy["_methods"])==dict, f"invalid syntax, {args[0]} doesn't have any attribute"
+        assert maxlen%2==0, "invalid syntax: set_attributes requires attribute-value pairs"
+        for i in range(1,maxlen,2):
+            methodname = args[i]
+            assert type(methodname)==str, "invalid syntax: invalid data type for method name"
+            body = do(args[i+1])
+            name = args[0]
+            data = envs_get(envs,args[0]) #get the dictionary containing data of the instance variable, assert in envs_get
+            while (not (methodname in data.keys())) and (data["_parent"] != None): #while current instance or class doesnt have method
+                name = data["_parent"] #name is class name or parent class name
+                data = envs_get(envs,name) #get dict containing data of class or parent class
+            assert type(data) == dict, f"{name} doesnt have methods"
+            assert methodname in copy["methods"].keys(), f"invalid syntax: {args[0]} has no method {args[i]}"
+            copy = data.copy()
+            copy["_methods"][methodname] = body #set value in attributes dictionary at index attribute_name (att)
+            envs_set(envs,name,copy)    
+
+        return None
+    
+    
+    
+    def class_get_attributes(envs, args):
+
+        """
+        get attribute of a given instance of class
+        implementation of option 2
+        
+
+        Args: 
+            envs: list of environments
+            args: [instance_name: str, attribute_name: str]
+        Return:
+            to be determined, temporarily the value of the attribute
+            
+        """
+        
+        assert len(args)==2, "Invalid syntax: expected 2 arguments for get_attributes"
+        name = args[0] #instance name
+        att = args[1]
+        while (not (att in data.keys())) and (data["_parent"] != None):
+            name = data["_parent"] #name is class name or parent class name
+            data = envs_get(envs,name) #get dict containing data of class or parent class
+        assert type(data["_attributes"])==dict, f"{args[0]} has no attribute"
+        assert att in data["_attributes"].keys(), f"invalid syntax: No attribute {att} found in {args[0]}"
+        return data["_attributes"][att]
+        
+    
+    def class_get_methods(envs, args):
+
+        """
+        get method of a given instance of class
+        implementation of option 2
+        
+
+        Args: 
+            envs: list of environments
+            args: [instance_name: str, method_name: str]
+        Return:
+            to be determined, temporarily method body of the method
+            
+        """
+        
+        assert len(args)==2, "Invalid syntax: expected 2 arguments for get_attributes"
+        name = args[0] #instance name
+        method_name = args[1]
+        while (not (method_name in data.keys())) and (data["_parent"] != None):
+            name = data["_parent"] #name is class name or parent class name
+            data = envs_get(envs,name) #get dict containing data of class or parent class
+        assert type(data["_methods"])==dict, f"{args[0]} has no method"
+        assert method_name in data["_methods"].keys(), f"invalid syntax: No method {method_name} found in {args[0]}"
+        return data["_methods"][method_name]
+        
+
+
+
+    def class_parent(envs, args):
+        '''
+        set parent class, make current class inherit from class "parent"
+
+        params:
+            envs: list of dicts, stack (list) of frames with dictionary as element
+            args: list of arguments ["parent", "classname", "parent_name"]
+
+        return:
+            ["class", "classname", dictionary], dictionary is updated to inherit from parent_name
+
+        '''
+        assert args[0] == "parent"
+        classname = args[1]
+        parentname = args[2]
+        envs_set(envs, classname, parentname, "parent")
+        return ["class", classname, envs_get(envs, classname)]
+    
+
+    #introspection in do_dict()
+    d = locals().copy()
+    OPERATIONS_CLASS = {}
+    for k in d:
+        if k.startswith("class_"):
+            OPERATIONS_CLASS[k.replace("class_","")] = d[k]
+
+   
+    assert args[0] in OPERATIONS_CLASS, f"Unknown operation {args[0]}"
+    func = OPERATIONS_CLASS[args[0]]
+    return func(envs, args[1], f=args[2:])
+
+
+#------------------------------
+
+
+
+#--------- 3 Logging -----------
+
+#Use decorator in chapter 9
+
+#-----------------------------
 
 
 #-----OPERATIONS and do() from funcs-demo.py in session 4------------
@@ -303,6 +510,10 @@ OPERATIONS = {
 def do(envs,expr):
     if isinstance(expr,int):
         return expr
+    if isinstance(expr,str):
+        return expr
+    if isinstance(expr,float):
+        return expr
    
     assert isinstance(expr,list)
     assert expr[0] in OPERATIONS, f"Unknown operation {expr[0]}"
@@ -310,20 +521,6 @@ def do(envs,expr):
     return func(envs, expr[1:])
 
 #----end OPERATIONS and do() -----------------------
-
-#--------- 2 Object System ------------
-
-#define Shape, Square, Circle, see session 2
-
-#------------------------------
-
-
-
-#--------- 3 Logging -----------
-
-#Use decorator in chapter 9
-
-#-----------------------------
 
 
 
