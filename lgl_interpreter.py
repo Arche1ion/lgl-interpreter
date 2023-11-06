@@ -203,8 +203,8 @@ def do_array(envs, args):
 
 
 
-def do_dict(env,args):
-    def dict_new(env, args):
+def do_dict(envs,args):
+    def dict_new(envs, args):
         '''
         creates dictionary called name ->Do dictionary names have to be strings?
         args:
@@ -216,9 +216,9 @@ def do_dict(env,args):
         dict_name = args[0]
         assert len(args) == 1
         assert isinstance(dict_name, str)
-        envs_set(env, dict_name, {})
+        envs_set(envs, dict_name, {})
 
-    def dict_get_value(env, args):
+    def dict_get_value(envs, args):
         '''
         get value of a key in dict
         args:
@@ -231,14 +231,14 @@ def do_dict(env,args):
         key = args[1]
         assert len(args) == 2
         assert isinstance(dict_name, str)
-        dict = envs_get(env, dict_name)
+        dict = envs_get(envs, dict_name)
         if key not in dict:
             print(f"Error: key {key} not in dictionary {dict_name}")
         else:
             value = dict[key]
             return value
 
-    def dict_set_value(env, args):
+    def dict_set_value(envs, args):
         '''
         set value of key in dict name
         args:
@@ -252,10 +252,10 @@ def do_dict(env,args):
         value = args[2]
         assert len(args) == 3
         assert isinstance(dict_name, str)
-        dict = envs_get(env, dict_name)
+        dict = envs_get(envs, dict_name)
         dict[key] = value
 
-    def dict_merge(env, args):
+    def dict_merge(envs, args):
         """
         this function merges two dictionarys -> should we delete the merged dictionarys?
         args:
@@ -269,10 +269,10 @@ def do_dict(env,args):
         dict_name2 = args[2]
         assert len(args) == 3
         assert isinstance(new_dict, str) and isinstance(dict_name1, str) and isinstance(dict_name2, str)
-        dict1 = envs_get(env, dict_name1)
-        dict2 = envs_get(env, dict_name2)
+        dict1 = envs_get(envs, dict_name1)
+        dict2 = envs_get(envs, dict_name2)
         merged = dict1 | dict2
-        envs_set(env, new_dict, merged)
+        envs_set(envs, new_dict, merged)
 
     #-----introspection in dict----------------------------
     variables = locals().copy()
@@ -284,7 +284,7 @@ def do_dict(env,args):
 
     assert args[0] in OPERATIONS_DICT, f"Unknown operation: {args[0]}"
     func = OPERATIONS_DICT[args[0]]
-    return func(env, args[1:])
+    return func(envs, args[1:])
 #-----end of dict-----------------------------------------
 
 
@@ -324,8 +324,34 @@ def do_class(envs, args):
     
 
     def class_instantiate(envs, args):
-        return
-    
+        """
+        instantiate new object
+        Args:
+            envs: list of environments
+            args: [instance_name:str, class_name:str,parameters]
+        Returns:
+            None
+        """
+        instance_name=args[0]
+        class_name=args[1]
+        data=envs_get(envs,class_name)
+        data_c=data.copy()
+        data_c["_parent"]=class_name
+        envs_set(envs,instance_name,data_c)
+
+        if len(args)>2:
+            parameters=args[2:]
+            instance=envs_get(envs,instance_name)
+            attributes=instance["_attributes"]
+            i=0
+            for key in attributes.keys():
+                attributes[key]=parameters[i]
+                i+=1
+
+
+
+
+
     def class_set_attributes(envs, args):
         """
         set attributes of a given instance of class
@@ -339,6 +365,7 @@ def do_class(envs, args):
             to be determined, temporarily None
             
         """
+        #does not check if length of parameters is equal to length of attributes
         data = envs_get(envs,args[0]) 
         assert type(data) == dict
         copy = data.copy()
@@ -415,7 +442,6 @@ def do_class(envs, args):
             to be determined, temporarily the value of the attribute
             
         """
-        
         assert len(args)==2, "Invalid syntax: expected 2 arguments for get_attributes"
         name = args[0] #instance name
         att = args[1]
@@ -507,6 +533,7 @@ OPERATIONS = {
 }
 
 
+
 def do(envs,expr):
     if isinstance(expr,int):
         return expr
@@ -521,7 +548,6 @@ def do(envs,expr):
     return func(envs, expr[1:])
 
 #----end OPERATIONS and do() -----------------------
-
 
 
 def legal_input():
