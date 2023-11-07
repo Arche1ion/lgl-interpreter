@@ -99,23 +99,63 @@ def do_sequence(envs,args):
 #--- end of funcs-demo in session 4---
 
 #----------to implement in 1---------------
+def do_multiply(envs, args):
+    prod = 1
+    for arg in args:
+        assert isinstance(do(envs,arg), int)
+        prod *= do(envs,arg)
+    return prod
 
-def do_multiply():
-    pass
+def do_division(envs, args):
+    assert len(args) == 2
+    left = do(envs,args[0])
+    right = do(envs,args[1])
+    return left / right
 
-def do_division():
-    pass
+def do_power(envs, args):
+    assert len(args) == 2
+    base = do(envs,args[0])
+    exponent = do(envs,args[1])
+    return base ** exponent
 
-def do_power():
-    pass
+def do_print(envs,args):
+    for arg in args:
+        print(do(envs, arg))
 
-def do_print():
-    pass
-
-def do_while():
+def do_while(envs,args):
     #Exercise in book, book says use python while or recursion
     #==, !=, <, >
-    pass
+    #["while","cond_var", "operator","count_var","statement"]
+    #while count_var operator cond_var: statement
+    #ex:
+    #   while size <= count_var:
+    #       print("size")
+    #       size += 1
+    assert len(args) == 4
+    #assert isinstance(args[0],int)
+    #assert isinstance(args[1],str)
+    #assert isinstance(args[2],int)
+    #assert isinstance(args[3],list)
+    if args[1] == "==":
+        while do(envs, args[0]) == args[2]:
+            do(envs, args[3])
+    elif args[1] == "!=":
+        while do(envs, args[0]) != args[2]:
+            do(envs, args[3])
+    elif args[1] == ">=":
+        while do(envs,args[0]) >= args[2]:
+            do(envs,args[3])
+    elif args[1] == "<=":
+        while do(envs, args[0]) <= args[2]:
+            do(envs, args[3])
+    elif args[1] == "<":
+        while do(envs, args[0]) < args[2]:
+            do(envs, args[3])
+    elif args[1] == ">":
+        while do(envs, args[0]) > args[2]:
+            do(envs, args[3])
+    else:
+        assert False,f'Unknown operator "{args[0]}"'
 
 def do_array(envs, args):
     """
