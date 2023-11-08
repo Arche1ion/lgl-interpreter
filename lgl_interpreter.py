@@ -431,6 +431,86 @@ def do_class(envs, args):
                 attributes[key] = parameters[i]
                 i += 1
 
+# ------------ combine set and append ------------------
+
+    def class_combine_attributes(envs, args):
+        """
+        set attributes of a given instance of class
+        implementation of option 2
+        
+
+        Args: 
+            envs: list of environments
+            args: [instance_name: str, attribute_name_1, value1, ...]
+        Return:
+            to be determined, temporarily None
+            
+        """ 
+
+        maxlen = len(args[1:])
+        assert maxlen%2==0, "invalid syntax: set_attributes requires attribute-value pairs"
+        for i in range(1,maxlen,2):
+            att = do(args[i])
+            value = do(args[i+1])
+            data = envs_get(envs,args[0])#get the dictionary containing data of the instance variable, assert in envs_get
+            name = args[0] #instance name
+            while (not (att in data.keys())) and (data["_parent"] != None):
+                name = data["_parent"] #name is class name or parent class name
+                data = envs_get(envs,name) #get dict containing data of class or parent class
+            assert type(data["_attributes"])==dict, f"{args[0]} has no attribute"
+            if att in data["_attributes"].keys(): #if it is an existing attribute:
+                copy = data.copy()
+                copy["_attributes"][att] = value #set value in attributes dictionary at index attribute_name (att)
+                envs_set(envs,name,copy)
+            else: #if it is a new attribute
+                data = envs_get(envs,args[0])#get information of the instance
+                copy["_attributes"][att] = value #append value in attributes dictionary at index attribute_name (att)
+                envs_set(envs,name,copy)
+
+            
+
+        return None
+
+    def class_combine_methods(envs, args):
+        """
+        set methods of a given instance of class
+        implementation of option 2
+        
+
+        Args: 
+            envs: list of environments
+            args: [instance_name: str, methodname1: str, methodbody: function object, ...]
+        Return:
+            to be determined, temporarily None
+            
+        """
+
+        maxlen = len(args[1:])
+        assert maxlen%2==0, "invalid syntax: set_methods requires method name - method body pairs"
+        for i in range(1,maxlen,2):
+            methodname = args[i]
+            assert type(methodname)==str, "invalid syntax: invalid data type for method name"
+            body = do(args[i+1])
+            name = args[0] #place holder for class_name to check up
+            data = envs_get(envs,name) #get the dictionary containing data of the instance variable, assert in envs_get
+            while (not (methodname in data.keys())) and (data["_parent"] != None): #while current instance or class doesnt have method
+                name = data["_parent"] #name is class name or parent class name
+                data = envs_get(envs,name) #get dict containing data of class or parent class
+            assert type(data) == dict, f"{name} doesnt have methods"
+            if methodname in copy["methods"].keys(): #if it is an existing method
+                copy = data.copy()
+                copy["_methods"][methodname] = body #set value in methods dictionary at index method_name (att)
+                envs_set(envs,name,copy)
+            else: #if it is a new method
+                data = envs_get(envs,args[0])
+                copy = data.copy()
+                copy["_methods"][methodname] = body #append value in methods dictionary at index method_name (att)
+                envs_set(envs,name,copy)
+
+
+        return None
+    #------ end of combine append and set -------------------------
+
     def class_append_attributes(envs, args):
         # ["class", "append_attributes", "class_name", {dict of attributes}]
         class_name = args[0]
