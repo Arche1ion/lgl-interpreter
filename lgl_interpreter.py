@@ -363,8 +363,7 @@ def do_class(envs, args):
             args: [instance_name: str, attribute_name_1, value1, ...]
         Return:
             to be determined, temporarily None
-            
-        """ 
+
 
         maxlen = len(args[1:])
         assert maxlen%2==0, "invalid syntax: set_attributes requires attribute-value pairs"
