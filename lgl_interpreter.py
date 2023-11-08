@@ -360,16 +360,9 @@ def do_class(envs, args):
 
         Args: 
             envs: list of environments
-            args: [class_name: str, instance_name: str, **kwargs]
+            args: [instance_name: str, attribute_name_1, value1, ...]
         Return:
             to be determined, temporarily None
-            
-        """
-        #does not check if length of parameters is equal to length of attributes
-        data = envs_get(envs,args[0]) 
-        assert type(data) == dict
-        copy = data.copy()
-        assert type(copy["_attributes"])==dict, f"invalid syntax, {args[0]} doesn't have any attribute"
 
 
         maxlen = len(args[1:])
@@ -399,22 +392,20 @@ def do_class(envs, args):
 
         Args: 
             envs: list of environments
-            args: [instance_name: str, methodname1: str]
+            args: [instance_name: str, methodname1: str, methodbody: function object, ...]
         Return:
             to be determined, temporarily None
             
         """
-        
+
         maxlen = len(args[1:])
-        copy = data.copy()
-        assert type(copy["_methods"])==dict, f"invalid syntax, {args[0]} doesn't have any attribute"
-        assert maxlen%2==0, "invalid syntax: set_attributes requires attribute-value pairs"
+        assert maxlen%2==0, "invalid syntax: set_methods requires method name - method body pairs"
         for i in range(1,maxlen,2):
             methodname = args[i]
             assert type(methodname)==str, "invalid syntax: invalid data type for method name"
             body = do(args[i+1])
-            name = args[0]
-            data = envs_get(envs,args[0]) #get the dictionary containing data of the instance variable, assert in envs_get
+            name = args[0] #place holder for class_name to check up
+            data = envs_get(envs,name) #get the dictionary containing data of the instance variable, assert in envs_get
             while (not (methodname in data.keys())) and (data["_parent"] != None): #while current instance or class doesnt have method
                 name = data["_parent"] #name is class name or parent class name
                 data = envs_get(envs,name) #get dict containing data of class or parent class
