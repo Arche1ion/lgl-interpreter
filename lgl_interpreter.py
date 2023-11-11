@@ -420,17 +420,18 @@ def do_class(envs, args):
         data = envs_get(envs, class_name)
         data_c = data.copy()
         data_c["_parent"] = class_name
-        envs_set(envs, instance_name, data_c)
 
         if len(args) > 2:
             parameters = args[2:]
-            instance = envs_get(envs, instance_name)
-            attributes = instance["_attributes"]
+            attributes=data_c["_attributes"]
             i = 0
             for key in attributes.keys():
                 if attributes[key].startswith("_"):
                     attributes[key] = parameters[i]
                     i += 1
+
+        envs_set(envs,instance_name,data_c)
+
 
 # ------------ combine set and append ------------------
 
