@@ -8,7 +8,7 @@ def do_function(envs, args):
     assert len(args) == 2
     params = args[0]
     body = args[1]
-    return ["funktion", params, body]
+    return ["function", params, body]
 
 
 def do_call(envs, args):
@@ -21,7 +21,7 @@ def do_call(envs, args):
 
     func = envs_get(envs, name)
     assert isinstance(func, list)
-    assert func[0] == "funktion"
+    assert func[0] == "function"
     func_params = func[1]
     assert len(func_params) == len(values)  # assert values passed to func is same as values required by definition
 
@@ -490,7 +490,8 @@ def do_class(envs, args):
         for i in range(1,maxlen,2):
             methodname = args[i]
             assert type(methodname)==str, "invalid syntax: invalid data type for method name"
-            body = do(args[i+1])
+            body = do(args[i+1]) # body = list ["function",[params],body]
+            assert body[0] == "function", f"{methodname} should be defined as a function"
             name = args[0] #place holder for class_name to check up
             data = envs_get(envs,name) #get the dictionary containing data of the instance variable, assert in envs_get
             while (not (methodname in data.keys())) and (data["_parent"] != None): #while current instance or class doesnt have method
@@ -579,7 +580,8 @@ def do_class(envs, args):
         for i in range(1,maxlen,2):
             methodname = args[i]
             assert type(methodname)==str, "invalid syntax: invalid data type for method name"
-            body = do(args[i+1])
+            body = do(args[i+1]) #body is a list ["function",["params"],body]
+            assert body[0] == "function", f"{methodname} should be defined as a function"
             name = args[0] #place holder for class_name to check up
             data = envs_get(envs,name) #get the dictionary containing data of the instance variable, assert in envs_get
             while (not (methodname in data.keys())) and (data["_parent"] != None): #while current instance or class doesnt have method
@@ -622,17 +624,20 @@ def do_class(envs, args):
         """
         get method of a given instance of class
         implementation of option 2
+        1108: when we want to call a method in TUL, the do_call function
+        is not available, this method returns the value that is produced with
+        given input parameters
         
 
         Args: 
             envs: list of environments
-            args: [instance_name: str, method_name: str]
+            args: [instance_name: str, method_name: str, args: values]
         Return:
             to be determined, temporarily method body of the method
             
         """
 
-        assert len(args) == 2, "Invalid syntax: expected 2 arguments for get_attributes"
+        assert len(args) == 2, "Invalid syntax: expected 2 arguments for get_methods"
         name = args[0]  # instance name
         method_name = args[1]
         while (not (method_name in data.keys())) and (data["_parent"] != None):
@@ -640,8 +645,30 @@ def do_class(envs, args):
             data = envs_get(envs, name)  # get dict containing data of class or parent class
         assert type(data["_methods"]) == dict, f"{args[0]} has no method"
         assert method_name in data["_methods"].keys(), f"invalid syntax: No method {method_name} found in {args[0]}"
-        return data["_methods"][method_name]
+        func = data["_methods"][method_name] # func is list ["function",[params],body]
+        assert isinstance(func, list)
 
+        #copy code from do_call because do_call gets functions from envs,
+        #but methods are embedded inside instance_name, not directly accessable from envs
+
+        arguments = args[2:]
+        # eager evaluation
+        values = [do(envs, arg) for arg in arguments]
+        assert func[0] == "function"
+        func_params = func[1]
+        assert len(func_params) == len(values)  # assert values passed to func is same as values required by definition
+
+        local_frame = dict(zip(func_params, values))  # dict of param name and values
+        envs.append(local_frame)  # push this local frame/ dict to top of envs
+        body = func[2]
+        result = do(envs, body)
+        envs.pop()
+
+        return result
+    
+        
+
+        
     def class_parent(envs, args):
         '''
         set parent class, make current class inherit from class "parent"
