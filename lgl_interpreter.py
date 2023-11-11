@@ -400,7 +400,6 @@ def do_class(envs, args):
         assert isinstance(args[1], list)
         assert isinstance(args[2], list)
         if args[3] != None: #If "parent"!=None
-            print(args[0])
             assert envs_get(envs, args[0]) == None, f"Class {args[0]} already exists!"
             parent = envs_get(envs, args[3])
             class_dict["_attributes"] = parent["_attributes"]
