@@ -428,8 +428,9 @@ def do_class(envs, args):
             attributes = instance["_attributes"]
             i = 0
             for key in attributes.keys():
-                attributes[key] = parameters[i]
-                i += 1
+                if attributes[key].startswith("_"):
+                    attributes[key] = parameters[i]
+                    i += 1
 
 # ------------ combine set and append ------------------
 
