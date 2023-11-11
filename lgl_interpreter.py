@@ -1,7 +1,67 @@
+import datetime
 import sys
 import json
+import random
 
 
+def legal_input():
+    """
+    Handles correct usage of command line input.
+
+    Args:
+
+    Returns:
+        int = 2: call with FILENAME.gsc
+        int = 4: call with --trace
+    """
+
+    error_message = "Usage: lgl_interpreter.py FILENAME.gsc;\nUsage: lgl_interpreter.py FILENAME.gsc --trace trace_file.log"
+    argv_len = len(sys.argv)
+    assert argv_len % 2 == 0, error_message
+    assert (argv_len == 2 or argv_len == 4), error_message
+    if argv_len == 2:
+        #print("argv_len == 2")
+        return argv_len
+    else:
+        #print("argv_len == 4")
+        assert sys.argv[2] == "--trace", error_message
+        return argv_len
+def get_id():
+    ids = list()
+    number = random.randint(10000, 100000)
+    while number in ids:
+        number = random.randint(10000, 100000)
+    ids.append(number)
+    return number
+
+
+def logging(func):
+    stack=[]
+    def log_entry(func_name,status):
+        id = get_id()
+        with open("trace_file.log", "a") as log:
+            log.write(f"{id},{func_name},{status},{str(datetime.datetime.now())}\n")
+    def wrapper(envs,args):
+        if legal_input() == 4:
+            func_name = func.__name__
+            stack.append(func_name)
+
+            log_entry(func_name, "start")
+
+            func(envs, args)
+
+            log_entry(func_name, "stop")
+            stack.pop()
+
+            while stack:
+                nested_func = stack.pop()
+                log_entry(nested_func, "stop")
+
+        else:
+            func(envs,args)
+        return
+
+    return wrapper
 # ---from funcs-demo in session 4---
 def do_function(envs, args):
     # define function
@@ -75,27 +135,27 @@ def do_get(envs, args):
     assert len(args) == 1
     return envs_get(envs, args[0])
 
-
+@logging
 def do_add(envs, args):
     assert len(args) == 2
     left = do(envs, args[0])
     right = do(envs, args[1])
     return left + right
 
-
+@logging
 def do_abs(envs, args):
     assert len(args) == 1
     value = do(envs, args[0])
     return abs(value)
 
-
+@logging
 def do_subtract(envs, args):
     assert len(args) == 2
     left = do(envs, args[0])
     right = do(envs, args[1])
     return left - right
 
-
+@logging
 def do_sequence(envs, args):
     assert len(args) > 0
     for operation in args:
@@ -106,6 +166,7 @@ def do_sequence(envs, args):
 # --- end of funcs-demo in session 4---
 
 # ----------to implement in 1---------------
+@logging
 def do_multiply(envs, args):
     #Input:
     #Parameters:    envs: Environment which keeps track of all variables
@@ -118,6 +179,7 @@ def do_multiply(envs, args):
     return prod
 
 
+@logging
 def do_division(envs, args):
     # Input:
     # Parameters:    envs: Environment which keeps track of all variables
@@ -128,7 +190,7 @@ def do_division(envs, args):
     right = do(envs, args[1])
     return left / right
 
-
+@logging
 def do_power(envs, args):
     # Input:
     # Parameters:    envs: Environment which keeps track of all variables
@@ -139,7 +201,7 @@ def do_power(envs, args):
     exponent = do(envs, args[1])
     return base ** exponent
 
-
+@logging
 def do_print(envs, args):
     # note: have to check how to print class/obj
     # Input:
@@ -149,7 +211,7 @@ def do_print(envs, args):
     for arg in args:
         print(do(envs, arg))
 
-
+@logging
 def do_while(envs, args):
     # Input:
     # Parameters:   envs: Environment which keeps track of all variables
@@ -166,6 +228,7 @@ def do_while(envs, args):
     # assert isinstance(args[1],str)
     # assert isinstance(args[2],int)
     # assert isinstance(args[3],list)
+
     if args[1] == "==":
         while do(envs, args[0]) == args[2]:
             do(envs, args[3])
@@ -187,7 +250,7 @@ def do_while(envs, args):
     else:
         assert False, f'Unknown operator "{args[0]}"'
 
-
+@logging
 def do_array(envs, args):
     """
     Array operations: create new array of fixed size, get value at index i, set value at index i
@@ -205,6 +268,7 @@ def do_array(envs, args):
         
     """
 
+    @logging
     def array_new(envs, args):
         """
         Creates array called name of size n
@@ -223,6 +287,7 @@ def do_array(envs, args):
         envs_set(envs, args[0], res)
         return ["array", args[1], res]
 
+    @logging
     def array_get(envs, args):
         """
         get the value of array at certain index
@@ -238,6 +303,7 @@ def do_array(envs, args):
         assert isinstance(args[0], str) and isinstance(args[1], int)
         return envs_get(envs, args[0], args[1])
 
+    @logging
     def array_set(envs, args):
         """
         set the value of array at certain index
@@ -268,8 +334,9 @@ def do_array(envs, args):
     func = OPERATIONS_ARRAY[args[0]]
     return func(envs, args[1:])
 
-
+@logging
 def do_dict(envs, args):
+    @logging
     def dict_new(envs, args):
         '''
         creates dictionary called name ->Do dictionary names have to be strings?
@@ -284,6 +351,7 @@ def do_dict(envs, args):
         assert isinstance(dict_name, str)
         envs_set(envs, dict_name, {})
 
+    @logging
     def dict_get_value(envs, args):
         '''
         get value of a key in dict
@@ -304,6 +372,7 @@ def do_dict(envs, args):
             value = dict[key]
             return value
 
+    @logging
     def dict_set_value(envs, args):
         '''
         set value of key in dict name
@@ -321,6 +390,7 @@ def do_dict(envs, args):
         dict = envs_get(envs, dict_name)
         dict[key] = value
 
+    @logging
     def dict_merge(envs, args):
         """
         this function merges two dictionarys -> should we delete the merged dictionarys?
@@ -706,7 +776,8 @@ def do_class(envs, args):
 
 # --------- 3 Logging -----------
 
-# Use decorator in chapter 9
+
+
 
 # -----------------------------
 
@@ -737,32 +808,9 @@ def do(envs, expr):
 # ----end OPERATIONS and do() -----------------------
 
 
-def legal_input():
-    """
-    Handles correct usage of command line input.
-    
-    Args:
-    
-    Returns:
-        int = 2: call with FILENAME.gsc
-        int = 4: call with --trace
-    """
-
-    error_message = "Usage: lgl_interpreter.py FILENAME.gsc;\nUsage: lgl_interpreter.py FILENAME.gsc --trace trace_file.log"
-    argv_len = len(sys.argv)
-    assert argv_len % 2 == 0, error_message
-    assert (argv_len == 2 or argv_len == 4), error_message
-    if argv_len == 2:
-        print("argv_len == 2")
-        return argv_len
-    else:
-        print("argv_len == 4")
-        assert sys.argv[2] == "--trace", error_message
-        return argv_len
-
 
 def main_in_funcs_demo():
-    assert len(sys.argv) == 2, "Usage: lgl_interpreter.py filename.gsc"
+    #assert len(sys.argv) == 2, "Usage: lgl_interpreter.py filename.gsc"
     with open(sys.argv[1], "r") as source_file:
         program = json.load(source_file)
     assert isinstance(program, list)
@@ -774,6 +822,8 @@ def main_in_funcs_demo():
 def main():
     # legal_input()
     # continue implementation
+    with open("trace_file.log","w") as f:
+        pass
     main_in_funcs_demo()
 
 
