@@ -48,18 +48,20 @@ def logging(func):
 
             log_entry(func_name, "start")
 
-            func(envs, args)
+            result=func(envs, args)
 
             log_entry(func_name, "stop")
             stack.pop()
 
-            while stack:
+            while len(stack)>1:
                 nested_func = stack.pop()
                 log_entry(nested_func, "stop")
 
+            return result
+
         else:
-            func(envs,args)
-        return
+            return func(envs,args)
+
 
     return wrapper
 # ---from funcs-demo in session 4---
