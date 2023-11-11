@@ -696,7 +696,7 @@ def do_class(envs, args):
 
     assert args[0] in OPERATIONS_CLASS, f"Unknown operation {args[0]}"
     func = OPERATIONS_CLASS[args[0]]
-    return func(envs, args[1], f=args[2:])
+    return func(envs, args[1:])
 
 
 # ------------------------------
@@ -760,7 +760,7 @@ def legal_input():
 
 
 def main_in_funcs_demo():
-    assert len(sys.argv) == 2, "Usage: funcs-demo.py filename.gsc"
+    assert len(sys.argv) == 2, "Usage: lgl_interpreter.py filename.gsc"
     with open(sys.argv[1], "r") as source_file:
         program = json.load(source_file)
     assert isinstance(program, list)
