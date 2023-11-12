@@ -47,7 +47,8 @@ def reporting():
             appearance.append(l[1])
         else:
             if l[2] == "stop":
-                storage_dict[l[1]][1] = get_time(str(storage_dict[l[1]][1]), l[-1], l[1])
+
+                storage_dict[l[1]][1] = get_time(str(storage_dict[l[1]][1]), l[-1])
                 storage_dict[l[1]][2] += storage_dict[l[1]][1]
                 storage_dict[l[1]][3] = storage_dict[l[1]][2] / storage_dict[l[1]][0]
             else:
