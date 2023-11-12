@@ -20,14 +20,12 @@ def legal_input():
     assert argv_len % 2 == 0, error_message
     assert (argv_len == 2 or argv_len == 4), error_message
     if argv_len == 2:
-        #print("argv_len == 2")
         return argv_len
     else:
-        #print("argv_len == 4")
         assert sys.argv[2] == "--trace", error_message
         return argv_len
+ids=list()
 def get_id():
-    ids = list()
     number = random.randint(10000, 100000)
     while number in ids:
         number = random.randint(10000, 100000)
