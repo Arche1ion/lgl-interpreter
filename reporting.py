@@ -1,12 +1,12 @@
-# This is reporting.py
-
-# It should display trace_file.log
-
+# | Function Name | Num. of calls | Total Time (ms) | Average Time (ms) |
+# |---------------------------------------------------------------------|
+# | add_cubes | 1 | 0.812 | 0.812 |
+# | get_cube_power | 2 | 0.440 | 0.220 |
 from datetime import datetime
 import sys
 import os
 
-def get_time(start_t, stop_t):
+def get_time(start_t, stop_t, name):
     date_format = "%Y-%m-%d %H:%M:%S.%f"
     start_time = datetime.strptime(start_t, date_format)
     stop_time = datetime.strptime(stop_t, date_format)
@@ -47,6 +47,7 @@ def reporting():
             appearance.append(l[1])
         else:
             if l[2] == "stop":
+
                 storage_dict[l[1]][1] = get_time(str(storage_dict[l[1]][1]), l[-1])
                 storage_dict[l[1]][2] += storage_dict[l[1]][1]
                 storage_dict[l[1]][3] = storage_dict[l[1]][2] / storage_dict[l[1]][0]
