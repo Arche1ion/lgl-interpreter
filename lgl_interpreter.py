@@ -825,7 +825,7 @@ def main():
     # legal_input()
     # continue implementation
     with open("trace_file.log","w") as f:
-        pass
+        f.write("id,function_name,event,timestamp\n")
     main_in_funcs_demo()
 
 
