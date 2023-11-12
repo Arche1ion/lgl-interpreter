@@ -381,8 +381,8 @@ our_instance={
 
 def do_class(envs, args):
     def class_define(envs, args):
-        #["class","define","classname","attributes","methods","parent"=None]
-        #If "parent!=None", we just take "attributes" and "methods" from "parent"
+        # ["class","define","classname","attributes","methods","parent"=None]
+        # If "parent!=None", we just take "attributes" and "methods" from "parent"
         """
                 Define new class
                 Args:
@@ -391,19 +391,30 @@ def do_class(envs, args):
                 Returns:
                     None
                 """
+        assert envs_get(envs, args[0]) == None, f"Class {args[0]} already exists!"
+        assert (len(args) >= 3), "Missing arguments!"
+        assert isinstance(args[1], list)
+        assert isinstance(args[2], list)
         class_dict = {
             "_classname": args[0],
             "_attributes": args[1],
             "_methods": args[2],
-            "_parent": args[3]
+            "_parent": args[3] if len(args) == 4 else None
+            # Sets the value of parent to None, if no other value is added, so that it is possible to check for val later
         }
-        assert isinstance(args[1], list)
-        assert isinstance(args[2], list)
-        if args[3] != None: #If "parent"!=None
-            assert envs_get(envs, args[0]) == None, f"Class {args[0]} already exists!"
+        if class_dict["_parent"] != None:  # If "parent"!=None
             parent = envs_get(envs, args[3])
-            class_dict["_attributes"] = parent["_attributes"]
-            class_dict["_methods"] = parent["_methods"]
+
+            temp_merge_dict = {att_list[0]: att_list for att_list in parent["_attributes"]}
+            merged_attributes = list(
+                temp_merge_dict.update({att_list[0]: att_list for att_list in class_dict["_attributes"]}).values())
+
+            temp_merge_dict = {met_list[0]: met_list for met_list in parent["_methods"]}
+            merged_methods = list(
+                temp_merge_dict.update({met_list[0]: met_list for met_list in class_dict["_methods"]}).values())
+            class_dict["_attributes"] = merged_attributes  # merge parent and child attributes
+            class_dict["_methods"] = merged_methods  # merge parent and child methods
+
         envs_set(envs, args[0], class_dict)
 
     def class_instantiate(envs, args):
