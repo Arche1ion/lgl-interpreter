@@ -53,6 +53,7 @@ def reporting():
                 end = l[-1]
                 diff = get_time(start, end)
                 storage_dict[l[1]][2] += diff
+
                 storage_dict[l[1]][3] = storage_dict[l[1]][2] / storage_dict[l[1]][0]
             else:
                 storage_dict[l[1]][0] += 1

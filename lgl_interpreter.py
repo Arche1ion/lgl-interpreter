@@ -1,14 +1,74 @@
+import datetime
 import sys
 import json
+import random
 
 
+def legal_input():
+    """
+    Handles correct usage of command line input.
+
+    Args:
+
+    Returns:
+        int = 2: call with FILENAME.gsc
+        int = 4: call with --trace
+    """
+
+    error_message = "Usage: lgl_interpreter.py FILENAME.gsc;\nUsage: lgl_interpreter.py FILENAME.gsc --trace trace_file.log"
+    argv_len = len(sys.argv)
+    assert argv_len % 2 == 0, error_message
+    assert (argv_len == 2 or argv_len == 4), error_message
+    if argv_len == 2:
+        return argv_len
+    else:
+        assert sys.argv[2] == "--trace", error_message
+        return argv_len
+ids=list()
+def get_id():
+    number = random.randint(10000, 100000)
+    while number in ids:
+        number = random.randint(10000, 100000)
+    ids.append(number)
+    return number
+
+
+def logging(func):
+    stack=[]
+    def log_entry(func_name,status,id):
+        with open("trace_file.log", "a") as log:
+            log.write(f"{id},{func_name},{status},{str(datetime.datetime.now())}\n")
+    def wrapper(envs,args):
+        id=get_id()
+        if legal_input() == 4:
+            func_name = func.__name__
+            stack.append(func_name)
+
+            log_entry(func_name, "start",id)
+
+            result=func(envs, args)
+
+            log_entry(func_name, "stop",id)
+            stack.pop()
+
+            while len(stack)>1:
+                nested_func = stack.pop()
+                log_entry(nested_func, "stop",id)
+
+            return result
+
+        else:
+            return func(envs,args)
+
+
+    return wrapper
 # ---from funcs-demo in session 4---
 def do_function(envs, args):
     # define function
     assert len(args) == 2
     params = args[0]
     body = args[1]
-    return ["funktion", params, body]
+    return ["function", params, body]
 
 
 def do_call(envs, args):
@@ -21,7 +81,7 @@ def do_call(envs, args):
 
     func = envs_get(envs, name)
     assert isinstance(func, list)
-    assert func[0] == "funktion"
+    assert func[0] == "function"
     func_params = func[1]
     assert len(func_params) == len(values)  # assert values passed to func is same as values required by definition
 
@@ -75,27 +135,27 @@ def do_get(envs, args):
     assert len(args) == 1
     return envs_get(envs, args[0])
 
-
+@logging
 def do_add(envs, args):
     assert len(args) == 2
     left = do(envs, args[0])
     right = do(envs, args[1])
     return left + right
 
-
+@logging
 def do_abs(envs, args):
     assert len(args) == 1
     value = do(envs, args[0])
     return abs(value)
 
-
+@logging
 def do_subtract(envs, args):
     assert len(args) == 2
     left = do(envs, args[0])
     right = do(envs, args[1])
     return left - right
 
-
+@logging
 def do_sequence(envs, args):
     assert len(args) > 0
     for operation in args:
@@ -106,6 +166,7 @@ def do_sequence(envs, args):
 # --- end of funcs-demo in session 4---
 
 # ----------to implement in 1---------------
+@logging
 def do_multiply(envs, args):
     #Input:
     #Parameters:    envs: Environment which keeps track of all variables
@@ -118,6 +179,7 @@ def do_multiply(envs, args):
     return prod
 
 
+@logging
 def do_division(envs, args):
     # Input:
     # Parameters:    envs: Environment which keeps track of all variables
@@ -128,7 +190,7 @@ def do_division(envs, args):
     right = do(envs, args[1])
     return left / right
 
-
+@logging
 def do_power(envs, args):
     # Input:
     # Parameters:    envs: Environment which keeps track of all variables
@@ -139,7 +201,7 @@ def do_power(envs, args):
     exponent = do(envs, args[1])
     return base ** exponent
 
-
+@logging
 def do_print(envs, args):
     # note: have to check how to print class/obj
     # Input:
@@ -149,7 +211,7 @@ def do_print(envs, args):
     for arg in args:
         print(do(envs, arg))
 
-
+@logging
 def do_while(envs, args):
     # Input:
     # Parameters:   envs: Environment which keeps track of all variables
@@ -166,6 +228,7 @@ def do_while(envs, args):
     # assert isinstance(args[1],str)
     # assert isinstance(args[2],int)
     # assert isinstance(args[3],list)
+
     if args[1] == "==":
         while do(envs, args[0]) == args[2]:
             do(envs, args[3])
@@ -187,7 +250,7 @@ def do_while(envs, args):
     else:
         assert False, f'Unknown operator "{args[0]}"'
 
-
+@logging
 def do_array(envs, args):
     """
     Array operations: create new array of fixed size, get value at index i, set value at index i
@@ -205,6 +268,7 @@ def do_array(envs, args):
         
     """
 
+    @logging
     def array_new(envs, args):
         """
         Creates array called name of size n
@@ -223,6 +287,7 @@ def do_array(envs, args):
         envs_set(envs, args[0], res)
         return ["array", args[1], res]
 
+    @logging
     def array_get(envs, args):
         """
         get the value of array at certain index
@@ -238,6 +303,7 @@ def do_array(envs, args):
         assert isinstance(args[0], str) and isinstance(args[1], int)
         return envs_get(envs, args[0], args[1])
 
+    @logging
     def array_set(envs, args):
         """
         set the value of array at certain index
@@ -268,8 +334,9 @@ def do_array(envs, args):
     func = OPERATIONS_ARRAY[args[0]]
     return func(envs, args[1:])
 
-
+@logging
 def do_dict(envs, args):
+    @logging
     def dict_new(envs, args):
         '''
         creates dictionary called name ->Do dictionary names have to be strings?
@@ -284,6 +351,7 @@ def do_dict(envs, args):
         assert isinstance(dict_name, str)
         envs_set(envs, dict_name, {})
 
+    @logging
     def dict_get_value(envs, args):
         '''
         get value of a key in dict
@@ -304,6 +372,7 @@ def do_dict(envs, args):
             value = dict[key]
             return value
 
+    @logging
     def dict_set_value(envs, args):
         '''
         set value of key in dict name
@@ -321,6 +390,7 @@ def do_dict(envs, args):
         dict = envs_get(envs, dict_name)
         dict[key] = value
 
+    @logging
     def dict_merge(envs, args):
         """
         this function merges two dictionarys -> should we delete the merged dictionarys?
@@ -431,16 +501,99 @@ def do_class(envs, args):
         data = envs_get(envs, class_name)
         data_c = data.copy()
         data_c["_parent"] = class_name
-        envs_set(envs, instance_name, data_c)
 
         if len(args) > 2:
             parameters = args[2:]
-            instance = envs_get(envs, instance_name)
-            attributes = instance["_attributes"]
+            attributes=data_c["_attributes"]
             i = 0
             for key in attributes.keys():
-                attributes[key] = parameters[i]
-                i += 1
+                if attributes[key].startswith("_"):
+                    attributes[key] = parameters[i]
+                    i += 1
+
+        envs_set(envs,instance_name,data_c)
+
+
+# ------------ combine set and append ------------------
+
+    def class_combine_attributes(envs, args):
+        """
+        set attributes of a given instance of class
+        implementation of option 2
+        
+
+        Args: 
+            envs: list of environments
+            args: [instance_name: str, attribute_name_1, value1, ...]
+        Return:
+            to be determined, temporarily None
+            
+        """ 
+
+        maxlen = len(args[1:])
+        assert maxlen%2==0, "invalid syntax: set_attributes requires attribute-value pairs"
+        for i in range(1,maxlen,2):
+            att = do(args[i])
+            value = do(args[i+1])
+            data = envs_get(envs,args[0])#get the dictionary containing data of the instance variable, assert in envs_get
+            name = args[0] #instance name
+            while (not (att in data.keys())) and (data["_parent"] != None):
+                name = data["_parent"] #name is class name or parent class name
+                data = envs_get(envs,name) #get dict containing data of class or parent class
+            assert type(data["_attributes"])==dict, f"{args[0]} has no attribute"
+            if att in data["_attributes"].keys(): #if it is an existing attribute:
+                copy = data.copy()
+                copy["_attributes"][att] = value #set value in attributes dictionary at index attribute_name (att)
+                envs_set(envs,name,copy)
+            else: #if it is a new attribute
+                data = envs_get(envs,args[0])#get information of the instance
+                copy["_attributes"][att] = value #append value in attributes dictionary at index attribute_name (att)
+                envs_set(envs,name,copy)
+
+            
+
+        return None
+
+    def class_combine_methods(envs, args):
+        """
+        set methods of a given instance of class
+        implementation of option 2
+        
+
+        Args: 
+            envs: list of environments
+            args: [instance_name: str, methodname1: str, methodbody: function object, ...]
+        Return:
+            to be determined, temporarily None
+            
+        """
+
+        maxlen = len(args[1:])
+        assert maxlen%2==0, "invalid syntax: set_methods requires method name - method body pairs"
+        for i in range(1,maxlen,2):
+            methodname = args[i]
+            assert type(methodname)==str, "invalid syntax: invalid data type for method name"
+            body = do(args[i+1]) # body = list ["function",[params],body]
+            assert body[0] == "function", f"{methodname} should be defined as a function"
+            name = args[0] #place holder for class_name to check up
+            data = envs_get(envs,name) #get the dictionary containing data of the instance variable, assert in envs_get
+            while (not (methodname in data.keys())) and (data["_parent"] != None): #while current instance or class doesnt have method
+                name = data["_parent"] #name is class name or parent class name
+                data = envs_get(envs,name) #get dict containing data of class or parent class
+            assert type(data) == dict, f"{name} doesnt have methods"
+            if methodname in copy["methods"].keys(): #if it is an existing method
+                copy = data.copy()
+                copy["_methods"][methodname] = body #set value in methods dictionary at index method_name (att)
+                envs_set(envs,name,copy)
+            else: #if it is a new method
+                data = envs_get(envs,args[0])
+                copy = data.copy()
+                copy["_methods"][methodname] = body #append value in methods dictionary at index method_name (att)
+                envs_set(envs,name,copy)
+
+
+        return None
+    #------ end of combine append and set -------------------------
 
     def class_append_attributes(envs, args):
         # ["class", "append_attributes", "class_name", {dict of attributes}]
@@ -510,7 +663,8 @@ def do_class(envs, args):
         for i in range(1,maxlen,2):
             methodname = args[i]
             assert type(methodname)==str, "invalid syntax: invalid data type for method name"
-            body = do(args[i+1])
+            body = do(args[i+1]) #body is a list ["function",["params"],body]
+            assert body[0] == "function", f"{methodname} should be defined as a function"
             name = args[0] #place holder for class_name to check up
             data = envs_get(envs,name) #get the dictionary containing data of the instance variable, assert in envs_get
             while (not (methodname in data.keys())) and (data["_parent"] != None): #while current instance or class doesnt have method
@@ -553,17 +707,20 @@ def do_class(envs, args):
         """
         get method of a given instance of class
         implementation of option 2
+        1108: when we want to call a method in TUL, the do_call function
+        is not available, this method returns the value that is produced with
+        given input parameters
         
 
         Args: 
             envs: list of environments
-            args: [instance_name: str, method_name: str]
+            args: [instance_name: str, method_name: str, args: values]
         Return:
             to be determined, temporarily method body of the method
             
         """
 
-        assert len(args) == 2, "Invalid syntax: expected 2 arguments for get_attributes"
+        assert len(args) == 2, "Invalid syntax: expected 2 arguments for get_methods"
         name = args[0]  # instance name
         method_name = args[1]
         while (not (method_name in data.keys())) and (data["_parent"] != None):
@@ -571,8 +728,30 @@ def do_class(envs, args):
             data = envs_get(envs, name)  # get dict containing data of class or parent class
         assert type(data["_methods"]) == dict, f"{args[0]} has no method"
         assert method_name in data["_methods"].keys(), f"invalid syntax: No method {method_name} found in {args[0]}"
-        return data["_methods"][method_name]
+        func = data["_methods"][method_name] # func is list ["function",[params],body]
+        assert isinstance(func, list)
 
+        #copy code from do_call because do_call gets functions from envs,
+        #but methods are embedded inside instance_name, not directly accessable from envs
+
+        arguments = args[2:]
+        # eager evaluation
+        values = [do(envs, arg) for arg in arguments]
+        assert func[0] == "function"
+        func_params = func[1]
+        assert len(func_params) == len(values)  # assert values passed to func is same as values required by definition
+
+        local_frame = dict(zip(func_params, values))  # dict of param name and values
+        envs.append(local_frame)  # push this local frame/ dict to top of envs
+        body = func[2]
+        result = do(envs, body)
+        envs.pop()
+
+        return result
+    
+        
+
+        
     def class_parent(envs, args):
         '''
         set parent class, make current class inherit from class "parent"
@@ -600,7 +779,7 @@ def do_class(envs, args):
 
     assert args[0] in OPERATIONS_CLASS, f"Unknown operation {args[0]}"
     func = OPERATIONS_CLASS[args[0]]
-    return func(envs, args[1], f=args[2:])
+    return func(envs, args[1:])
 
 
 # ------------------------------
@@ -608,7 +787,8 @@ def do_class(envs, args):
 
 # --------- 3 Logging -----------
 
-# Use decorator in chapter 9
+
+
 
 # -----------------------------
 
@@ -639,32 +819,9 @@ def do(envs, expr):
 # ----end OPERATIONS and do() -----------------------
 
 
-def legal_input():
-    """
-    Handles correct usage of command line input.
-    
-    Args:
-    
-    Returns:
-        int = 2: call with FILENAME.gsc
-        int = 4: call with --trace
-    """
-
-    error_message = "Usage: lgl_interpreter.py FILENAME.gsc;\nUsage: lgl_interpreter.py FILENAME.gsc --trace trace_file.log"
-    argv_len = len(sys.argv)
-    assert argv_len % 2 == 0, error_message
-    assert (argv_len == 2 or argv_len == 4), error_message
-    if argv_len == 2:
-        print("argv_len == 2")
-        return argv_len
-    else:
-        print("argv_len == 4")
-        assert sys.argv[2] == "--trace", error_message
-        return argv_len
-
 
 def main_in_funcs_demo():
-    assert len(sys.argv) == 2, "Usage: funcs-demo.py filename.gsc"
+    #assert len(sys.argv) == 2, "Usage: lgl_interpreter.py filename.gsc"
     with open(sys.argv[1], "r") as source_file:
         program = json.load(source_file)
     assert isinstance(program, list)
@@ -676,6 +833,8 @@ def main_in_funcs_demo():
 def main():
     # legal_input()
     # continue implementation
+    with open("trace_file.log","w") as f:
+        f.write("id,function_name,event,timestamp\n")
     main_in_funcs_demo()
 
 
