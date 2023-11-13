@@ -33,10 +33,7 @@ def get_id():
     return number
 
 def logging(func):
-    stack=[]
-    def log_entry(func_name,status,id):
-        with open("trace_file.log", "a") as log:
-            log.write(f"{id},{func_name},{status},{str(datetime.datetime.now())}\n")
+
     def wrapper(envs,args):
         id=get_id()
         if legal_input() == 4:
@@ -46,11 +43,10 @@ def logging(func):
                 func_name=args[0]
             else:
                 func_name=func.__name__
-
-            stack.append(func_name)
-            log_entry(func_name, "start",id)
-            result=func(envs, args)
-            log_entry(func_name, "stop",id)
+            with open("trace_file.log", "a") as log:
+                log.write(f"{id},{func_name},start,{str(datetime.datetime.now())}\n")
+                result=func(envs, args)
+                log.write(f"{id},{func_name},stop,{str(datetime.datetime.now())}\n")
 
             return result
 
