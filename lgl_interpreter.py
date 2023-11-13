@@ -52,10 +52,6 @@ def logging(func):
             result=func(envs, args)
             log_entry(func_name, "stop",id)
 
-            while len(stack)>0:
-                nested_func = stack.pop()
-                log_entry(nested_func, "stop",id)
-
             return result
 
         else:
@@ -497,6 +493,7 @@ def do_class(envs, args):
         class_name = args[1]
         data = envs_get(envs, class_name)
         data_c = data.copy()
+        data_c["_parent"] = class_name
 
         if len(args) > 2:
             parameters = args[2:]
@@ -512,7 +509,7 @@ def do_class(envs, args):
     def class_set_attributes(envs, args):
         """
         set attributes of a given instance of class
-        implementation of option 2
+        Can set multiple values with one call
         
 
         Args: 
@@ -524,8 +521,8 @@ def do_class(envs, args):
         maxlen = len(args[1:])
         assert maxlen%2==0, "invalid syntax: set_attributes requires attribute-value pairs"
         for i in range(1,maxlen,2):
-            att = do(args[i])
-            value = do(args[i+1])
+            att = do(envs, args[i])
+            value = do(envs, args[i+1])
             data = envs_get(envs,args[0])#get the dictionary containing data of the instance variable, assert in envs_get
             name = args[0] #instance name
 
@@ -535,7 +532,6 @@ def do_class(envs, args):
                 copy["_attributes"][att] = value #set value in attributes dictionary at index attribute_name (att)
                 envs_set(envs,name,copy)
             else: #if it is a new attribute
-                data = envs_get(envs,args[0])#get information of the instance
                 copy["_attributes"][att] = value #append value in attributes dictionary at index attribute_name (att)
                 envs_set(envs,name,copy)
 
@@ -561,19 +557,14 @@ def do_class(envs, args):
             body = do(envs,args[i+1]) # body = list ["function",[params],body]
             assert body[0] == "function", f"{methodname} should be defined as a function"
 
-            name = args[0] #place holder for class_name to check up
+            name = args[0] #place holder for class_name
             data = envs_get(envs,name) #get the dictionary containing data of the instance variable, assert in envs_get
             assert type(data) == dict, f"{name} doesnt have methods"
 
             copy = data.copy()
-            if methodname in copy["_methods"].keys(): #if it is an existing method
-                copy["_methods"][methodname] = body #set value in methods dictionary at index method_name (att)
-                envs_set(envs,name,copy)
-            else: #if it is a new method
-                data = envs_get(envs,args[0])
-                copy = data.copy()
-                copy["_methods"][methodname] = body #append value in methods dictionary at index method_name (att)
-                envs_set(envs,name,copy)
+            copy["_methods"][methodname] = body #set value in methods dictionary at index method_name (att)
+            envs_set(envs,name,copy)
+
 
         return None
 
@@ -602,11 +593,8 @@ def do_class(envs, args):
     def class_get_methods(envs, args):
         """
         get method of a given instance of class
-        implementation of option 2
-        1108: when we want to call a method in TUL, the do_call function
-        is not available, this method returns the value that is produced with
-        given input parameters
-        
+        Executes the method with provided input parameters
+        returns the value that is produced
 
         Args: 
             envs: list of environments
@@ -643,21 +631,19 @@ def do_class(envs, args):
 
     def class_parent(envs, args):
         '''
-        set parent class, make current class inherit from class "parent"
+        get parent class of a class or the class of an instance
 
         params:
             envs: list of dicts, stack (list) of frames with dictionary as element
-            args: list of arguments ["parent", "classname", "parent_name"]
+            args: list of arguments ["objname"]
 
         return:
-            ["class", "classname", dictionary], dictionary is updated to inherit from parent_name
+            "parent": str, parent class name
 
         '''
-        assert args[0] == "parent"
-        classname = args[1]
-        parentname = args[2]
-        envs_set(envs, classname, parentname, "parent")
-        return ["class", classname, envs_get(envs, classname)]
+        name = args[0]
+        data = envs_get(envs, name)
+        return data["_parent"]
 
     # introspection in do_class()
     d = locals().copy()
