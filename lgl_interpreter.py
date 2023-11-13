@@ -428,20 +428,7 @@ def do_dict(envs, args):
 
 # -------- do_class -------- #
 def do_class(envs, args):
-    """
-    our_class={
-        "_classname": name
-        "_attributes": dict of attributes
-        "_methods": dict of methods
-        "_parent": parent
-    }
 
-    our_instance={
-        "_parent": "Shape"
-        "attributes": {}
-        "methods": {}
-    }
-    """
 
     def class_define(envs, args):
         """
