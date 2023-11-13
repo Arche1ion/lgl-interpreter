@@ -33,7 +33,6 @@ def get_id():
     return number
 
 def logging(func):
-    stack=[]
     def log_entry(func_name,status,id):
         with open("trace_file.log", "a") as log:
             log.write(f"{id},{func_name},{status},{str(datetime.datetime.now())}\n")
@@ -47,7 +46,6 @@ def logging(func):
             else:
                 func_name=func.__name__
 
-            stack.append(func_name)
             log_entry(func_name, "start",id)
             result=func(envs, args)
             log_entry(func_name, "stop",id)
