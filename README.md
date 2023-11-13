@@ -4,8 +4,7 @@
 ## logging():
 logging is a decorator which returns a function called wrapper. This function is the main function. First it gets an id with the get_id() function, then it checks if legal_input() is equal to four. If it isn't the function from logging is run normally.
 But if it is it first gets the method name by checking which function is called (because the name is not necessarily at the same position). 
-Then it calles the second function with status=start in logging which is called log_entry() where the entry into the log file is done. Then the function is run.
-After that log_entry is called again, but with the status=end
+Then the first log entry is done with status equal to start. Then the function is run and after this the second log entry is done with status equal to stop.
 
 ### legal_input():
 This is a helper function for logging that checks if --trace is in the input which would mean that it needs logging.
