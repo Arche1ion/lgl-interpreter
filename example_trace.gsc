@@ -8,7 +8,7 @@
         ["function", "x", 
             ["add", 
                 ["multiply", ["get", "x"], 3], 
-                ["multiply", ["call", "get_cube_power", ["get", "x"]], ["call", "add_cubes", 3, 2]]
+                ["multiply", ["call", "get_cube_power", ["call", "get_cube_power", ["get", "x"]]], ["call", "add_cubes", 3, 2]]
             ]
         ]
     ],

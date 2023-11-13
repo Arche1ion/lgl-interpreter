@@ -33,6 +33,13 @@
     ],
 
     ["set", "weight", 5],
+    ["class","set_attributes","sq1","color", "blue", "_name", "temp"],
+    ["print", ["class","get_attributes","sq1","color"]],
+    ["print", ["class","get_attributes","sq1","_name"]],
+    ["print", ["class","parent","sq1"]],
+    ["print", ["class","parent","Square"]],
+    ["print", ["class","parent","Shape"]],
+    ["class","set_attributes","sq1", "_name", "sq1"],
     ["set", "densitySquare", ["class", "get_methods", "sq1", "_density", ["get","weight"]]],
     ["set", "densityCircle", ["class", "get_methods", "cir1", "_density", ["get","weight"]]],
     ["add", ["get", "densitySquare"], ["get", "densityCircle"]]
