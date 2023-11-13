@@ -6,7 +6,7 @@ from datetime import datetime
 import sys
 import os
 
-def get_time(start_t, stop_t, name):
+def get_time(start_t, stop_t):
     date_format = "%Y-%m-%d %H:%M:%S.%f"
     start_time = datetime.strptime(start_t, date_format)
     stop_time = datetime.strptime(stop_t, date_format)
@@ -23,8 +23,8 @@ def print_report(storage_dict, appearance):
         temp_l = []
         temp_l.append(("| " + met).ljust(max_len, " ") + " ")
         temp_l.append("|" + str(storage_dict[met][0]).center(len_num_calls))
-        temp_l.append("|" + str(storage_dict[met][2]).center(len_tot_time))
-        temp_l.append("|" + str(storage_dict[met][3]).center(len_avg_time) + "|")
+        temp_l.append("|" + str(round(storage_dict[met][2], 2)).center(len_tot_time))
+        temp_l.append("|" + str(round(storage_dict[met][3], 2)).center(len_avg_time) + "|")
         rep.append("".join(temp_l))
     for l in rep:
         print(str(l))
@@ -43,17 +43,21 @@ def reporting():
         if l != report_matrix[-1]:
             l[-1] = l[-1][:-1] #Delete \n of the last list element
         if not l[1] in storage_dict:
-            storage_dict[l[1]] = [1, l[-1], 0, 0]
+            storage_dict[l[1]] = [1, [], 0, 0]
+            storage_dict[l[1]][1].append(l[-1])
             appearance.append(l[1])
         else:
             if l[2] == "stop":
+                #storage_dict[l[1]][1] = get_time(str(storage_dict[l[1]][1]), l[-1], l[1])
+                start = storage_dict[l[1]][1].pop()
+                end = l[-1]
+                diff = get_time(start, end)
+                storage_dict[l[1]][2] += diff
 
-                storage_dict[l[1]][1] = get_time(str(storage_dict[l[1]][1]), l[-1])
-                storage_dict[l[1]][2] += storage_dict[l[1]][1]
                 storage_dict[l[1]][3] = storage_dict[l[1]][2] / storage_dict[l[1]][0]
             else:
                 storage_dict[l[1]][0] += 1
-                storage_dict[l[1]][1] = l[-1]
+                storage_dict[l[1]][1].append(l[-1])
     print_report(storage_dict, appearance)
 
  #Call this function with: python reporting.py FILENAME
