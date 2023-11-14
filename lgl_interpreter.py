@@ -39,7 +39,7 @@ def logging(func):
         if legal_input() == 4:
             if func.__name__ == "class_get_methods":
                 func_name=args[1]
-            elif func.__name__ =="do_call":
+            elif func.__name__ == "do_call":
                 func_name=args[0]
             else:
                 func_name=func.__name__
@@ -164,7 +164,7 @@ def do_multiply(envs, args):
         product of numbers
 
     """
-    assert len(args)>=2
+    assert len(args) >= 2
     prod = 1
     for arg in args:
         assert isinstance(do(envs, arg), int) or isinstance(do(envs,arg),float)
@@ -184,7 +184,7 @@ def do_division(envs, args):
     assert len(args) == 2
     left = do(envs, args[0])
     right = do(envs, args[1])
-    assert right!=0, "Error: Division by zero"
+    assert right != 0, "Error: Division by zero"
     return left / right
 
 def do_power(envs, args):
@@ -487,7 +487,7 @@ def do_class(envs, args):
                     attributes[key] = parameters[i]
                     i += 1
 
-        envs_set(envs,instance_name,data_c)
+        envs_set(envs, instance_name, data_c)
 
     def class_set_attributes(envs, args):
         """
@@ -502,21 +502,21 @@ def do_class(envs, args):
             to be determined, temporarily None
         """
         maxlen = len(args[1:])
-        assert maxlen%2==0, "invalid syntax: set_attributes requires attribute-value pairs"
-        for i in range(1,maxlen,2):
+        assert maxlen % 2 == 0, "invalid syntax: set_attributes requires attribute-value pairs"
+        for i in range(1, maxlen, 2):
             att = do(envs, args[i])
-            value = do(envs, args[i+1])
-            data = envs_get(envs,args[0])#get the dictionary containing data of the instance variable, assert in envs_get
+            value = do(envs, args[i + 1])
+            data = envs_get(envs, args[0])#get the dictionary containing data of the instance variable, assert in envs_get
             name = args[0] #instance name
 
             assert type(data["_attributes"])==dict, f"{args[0]} has no attribute"
             copy = data.copy()
             if att in data["_attributes"].keys(): #if it is an existing attribute:
                 copy["_attributes"][att] = value #set value in attributes dictionary at index attribute_name (att)
-                envs_set(envs,name,copy)
+                envs_set(envs, name, copy)
             else: #if it is a new attribute
                 copy["_attributes"][att] = value #append value in attributes dictionary at index attribute_name (att)
-                envs_set(envs,name,copy)
+                envs_set(envs, name, copy)
 
         return None
 
@@ -533,20 +533,20 @@ def do_class(envs, args):
             to be determined, temporarily None
         """
         maxlen = len(args[1:])
-        assert maxlen%2==0, "invalid syntax: set_methods requires method name - method body pairs"
-        for i in range(1,maxlen,2):
+        assert maxlen % 2 == 0, "invalid syntax: set_methods requires method name - method body pairs"
+        for i in range(1, maxlen, 2):
             methodname = args[i]
-            assert type(methodname)==str, "invalid syntax: invalid data type for method name"
-            body = do(envs,args[i+1]) # body = list ["function",[params],body]
+            assert type(methodname) == str, "invalid syntax: invalid data type for method name"
+            body = do(envs,args[i + 1]) # body = list ["function",[params],body]
             assert body[0] == "function", f"{methodname} should be defined as a function"
 
             name = args[0] #place holder for class_name
-            data = envs_get(envs,name) #get the dictionary containing data of the instance variable, assert in envs_get
+            data = envs_get(envs, name) #get the dictionary containing data of the instance variable, assert in envs_get
             assert type(data) == dict, f"{name} doesnt have methods"
 
             copy = data.copy()
             copy["_methods"][methodname] = body #set value in methods dictionary at index method_name (att)
-            envs_set(envs,name,copy)
+            envs_set(envs, name, copy)
 
 
         return None
@@ -587,7 +587,7 @@ def do_class(envs, args):
         """
         name = args[0]  # instance name
         method_name = args[1]
-        data= envs_get(envs,name)
+        data= envs_get(envs, name)
 
         assert type(data["_methods"]) == dict, f"{args[0]} has no method"
         assert method_name in data["_methods"].keys(), f"invalid syntax: No method {method_name} found in {args[0]}"
