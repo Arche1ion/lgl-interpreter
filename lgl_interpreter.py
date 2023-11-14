@@ -224,7 +224,7 @@ def do_while(envs, args):
 
     Args:
         envs: list of environments
-        args: [cond_var: int or float, operator: str, count_var: int or float, statement: sequence]
+        args: [cond_var: int or float or bool, operator: str, count_var: int or float or bool, statement: sequence]
 
     Returns:
         None
