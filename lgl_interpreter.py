@@ -230,6 +230,10 @@ def do_while(envs, args):
         None
     """
     assert len(args) == 4
+    if isinstance(args[0], bool):
+        assert isinstance(args[2], bool), "Can only compare bool with bool."
+    if isinstance(args[2], bool):
+        assert isinstance(args[0], bool), "Can only compare bool with bool."
     if args[1] == "==":
         while do(envs, args[0]) == args[2]:
             do(envs, args[3])
@@ -671,7 +675,6 @@ def main_in_funcs_demo():
 
 
 def main():
-
     with open("trace_file.log","w") as f:
         f.write("id,function_name,event,timestamp\n")
     main_in_funcs_demo()
