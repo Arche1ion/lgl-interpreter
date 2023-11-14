@@ -50,18 +50,18 @@ The usage of data structure array in TUL is handled in this function. An array i
 ### array_new():
 
 Creates an empty array of some fixed size. This array is saved to environment. 
-Syntax in TUL: ["array","new","array_name","size"]
+	Syntax in TUL: ["array","new","array_name","size"]
 
 ### array_get():
 
 returns the value of an array at a certain index
-Syntax in TUL: ["array","get","array_name","index"]
+	Syntax in TUL: ["array","get","array_name","index"]
 
 ### array_set():
 
 set the value of an array at a certain index.
 Only one value can be set at each call.
-Syntax in TUL: ["array","set","array_name","index","value"]
+	Syntax in TUL: ["array","set","array_name","index","value"]
 
 
 ***
@@ -131,34 +131,34 @@ After assigning all attributes the new instance is set in the environment
 
 Assign values to existing or new attributes, supports setting multiple attribute values with one single call.
 Attribute names to be inherited should have a leading "_" character.
-Syntax in TUL: ["class","set_attributes","instance_name","attribute_name1", value1, "attribute_name2", value2]
+	Syntax in TUL: ["class","set_attributes","instance_name","attribute_name1", value1, "attribute_name2", value2]
 
 
 ### class_set_methods():
 
 Assign user-defined TUL functions to methods dictionary of an object, supports setting multiple methods with one single call.
 Method names to be inherited or make use of polymorphism should have a leading "_" character.
-Syntax in TUL: ["class","set_methods","instance_name","method_name1", body1, "method_name2", body2]
+	Syntax in TUL: ["class","set_methods","instance_name","method_name1", body1, "method_name2", body2]
 
 
 ### class_get_attributes():
 
 Returns the value of an attribute that belongs to the specified instance.
 It searches by using the attribute name as key and looks in the current class/ instance dictionary.
-Syntax in TUL: ["class","get_attributes","instance_name","attribute_name"]
+	Syntax in TUL: ["class","get_attributes","instance_name","attribute_name"]
 
 
 ### class_get_methods():
 
 Executes the method with specified parameters and returns the computed value. The parameters are passed sequencially.
 Since the parameters can be function calls themselves, they will be passed to do() and the return value kept in a list.
-Syntax in TUL: ["class","get_methods","instance_name","method_name","param1","param2"]
+	Syntax in TUL: ["class","get_methods","instance_name","method_name","param1","param2"]
 
 
 ### class_parent():
 
 Returns the parent of a class or the class of an instance. Returns None if class has no parent.
-["class","get_methods","instance_name","method_name","param1","param2"]
+	["class","get_methods","instance_name","method_name","param1","param2"]
 
 
 ***
