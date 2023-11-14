@@ -1,6 +1,12 @@
 # lgl-interpreter
 
 ***
+
+## General description
+
+Our lgl_interpreter.py serves as an interpreter for an imaginative programming language we call The Ultimate Language (TUL). TUL syntax uses English as base language. 
+
+***
 ## logging():
 logging is a decorator which returns a function called wrapper. This function is the main function. First it gets an id with the get_id() function, then it checks if legal_input() is equal to four. If it isn't the function from logging is run normally.
 But if it is it first gets the method name by checking which function is called (because the name is not necessarily at the same position). 
